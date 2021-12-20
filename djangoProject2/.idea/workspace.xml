@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3d515012-024c-48c0-98e8-cd80c32f9706" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../Lab2/Отчет ЛР2.docx" beforeDir="false" afterPath="$PROJECT_DIR$/../Lab2/Отчет ЛР2.docx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Lab3/Отчет ЛР3.docx" beforeDir="false" afterPath="$PROJECT_DIR$/../Lab3/Отчет ЛР3.docx" afterDir="false" />
-    </list>
+    <list default="true" id="3d515012-024c-48c0-98e8-cd80c32f9706" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -26,6 +23,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../../../RIP-main/rk2" />
   </component>
   <component name="RunManager" selected="Django Server.djangoProject2">
     <configuration name="Unnamed" type="Python.DjangoServer" factoryName="Django server" nameIsGenerated="true">
@@ -88,7 +86,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1640022328548</updated>
-      <workItem from="1640022344663" duration="852000" />
+      <workItem from="1640022344663" duration="932000" />
     </task>
     <servers />
   </component>
