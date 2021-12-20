@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    {% if data.id == 1 %}
+        <div>Cars:</div>
+        <li>
+            drift:
+            <br><img width="200px" height="200px" src="{% static 'images/imggg1.jpg'%}"></br>
+        </li>
+        <li>
+            drift:
+            <br><img width="200px" height="200px" src="{% static 'images/img2.jpg'%}"></br>
+        </li>
+        <li>
+            power:
+            <br><img width="200px" height="250px" src="{% static 'images/img3.jpg'%}"></br>
+        </li>
+        <li>
+    {% endif %}
+
+    {% if data.id == 2 %}
+    <div>is that a supra:</div>
+        <li>
+            supra:
+            <br><img width="200px" height="200px" src="{% static 'images/supra1.jpg'%}"></br>
+        </li>
+        <li>
+            supra fast:
+            <br><img width="200px" height="230px" src="{% static 'images/supra2.jpg'%}"></br>
+        </li>
+        <li>
+            supra ultra mega fast:
+            <br><img width="200px" height="200px" src="{% static 'images/supra3.jpg'%}"></br>
+        </li>
+    {% endif %}
+
+    {% if data.id == 3%}
+    <div>Mark X:</div>
+    Drift
+    <br><img width="200px" height="250px" src="{% static 'images/markx.jpg'%}"></br>
+    {% endif %}
+
+{% endblock %}
