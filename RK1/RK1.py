@@ -1,110 +1,170 @@
-from operator import itemgetter
+import numpy as np
+from sympy.utilities.iterables import multiset_permutations
+from prettytable import PrettyTable
 
-# Самойлов Алексей Михайлович, группа ИУ5-54Б, Вариант Г-18 
+n = 7
+k = 4
+gen_polynom = 0b1011
 
-tasks = [
-    "— Список оркестров на букву 'А' и их композиций",                          # Г1
-    "— Список оркестров с максимальной длиной композиции, сортировка по длине",  # Г2
-    "— Список всех связанных композиций и оркестров, сортировка по оркестрам"   # Г3
-]
-
-
-class composition:
-    #Музыкальная композиция
-
-    def __init__(self, id, title, author, length, orchestra_id):
-        self.id = id
-        self.title = title
-        self.author = author
-        self.length = length
-        self.orchestra_id = orchestra_id
+information = 0b0001
 
 
-class orchestra:
-    #Оркестр
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
+# util to transform binary number to array of powers of 2
+# Утилита для преобразования двоичного числа в массив степеней двойки
+def transform_to_arr(bin_num):
+    i = 0
+    arr = np.delete(np.array([0]), 0)
+    while (bin_num > 0):
+        if bin_num % 2:
+            arr = np.append(arr, i)
+        i += 1
+        bin_num //= 2
+    return arr
 
 
-class CompOrch:
-    """
-    'Музыкальное произведение оркестров' для реализации
-    связи многие-ко-многим
-    """
-    def __init__(self, orchestra_id, composition_id):
-        self.orchestra_id = orchestra_id
-        self.composition_id = composition_id
+# Утилита для преобразования массива нулей и единиц в число
+def arr_to_num(arr):
+    num = 0
+    for i in range(len(arr)):
+        num += arr[i] << i
+    return num
 
-        
-# Оркестры
-orchestras = [
-    orchestra(1, 'Большой симфонический оркестр'),
-    orchestra(2, 'Симфонический оркестр Большого театра'),
-    orchestra(3, 'Академический симфонический оркестр'),
-]
 
-# Композиции
-compositions = [
-    composition(1, 'К Элизе', 'Людвиг ван Бетховен', 170, 1),
-    composition(2, 'Турецкое рондо', 'Вольфганг Амадей Моцарт', 258, 2),
-    composition(3, 'Аве Мария', 'Франц Шуберт', 324, 3),
-    composition(4, 'Утро', 'Эдвард Григ', 563, 1),
-    composition(5, 'Лунный свет', 'Клод Дебюсси', 434, 2),
-    composition(6, 'Лебедь', 'Камиль Сен-Санс', 453, 3),
-]
+# util to get syndrome
+# Утилита для получения синдрома
+def get_syndrome(shifted_information):
+    if shifted_information == 0:
+        return 0
+    info_arr = transform_to_arr(shifted_information)
+    polynom_arr = transform_to_arr(gen_polynom)
+    polynom_arr_max = max(polynom_arr)
+    while polynom_arr_max <= max(info_arr):
+        quotient = max(info_arr) - max(polynom_arr)
+        current = polynom_arr + quotient
+        i = 0
 
-# Оркестры - музыкальные произведения
-orchestra_composition = [
-    CompOrch(1, 1),
-    CompOrch(2, 2),
-    CompOrch(3, 3),
-    CompOrch(1, 4),
-    CompOrch(2, 5),
-    CompOrch(3, 6)
-]
+        # xor realization
+        # Реализация сложения по модулю 2
+        while i < len(info_arr):
+            element = info_arr[i]
+            if (element in current):
+                current = np.delete(current, np.where(current == element))
+                info_arr = np.delete(info_arr, i)
+                i -= 1
+            i += 1
+        i = 0
+        for i in range(len(current)):
+            if (current[i] not in info_arr):
+                info_arr = np.append(info_arr, current[i])
+
+        # if get_syndrome passed without remainder
+        if (len(info_arr) == 0 and len(current) == 0):
+            break
+    if (len(info_arr) == 0):
+        return 0
+    syndrome = 0
+    for i in info_arr:
+        syndrome += 1 << i
+    return syndrome
+
+
+# Основная функция кодирования сигнала
+def coding():
+    shifted_information = information << n - k
+    syndrome = get_syndrome(shifted_information)
+    shifted_information += syndrome
+    return shifted_information
+
+
+# Утилита для получения всех ошибок в классе
+def get_all_errors(mult):
+    temp = [0] * 7
+    for i in range(mult):
+        temp[i] = 1
+    all_errors = list(multiset_permutations(temp))
+    return all_errors
+
+
+# Утилита для получения вектора ошибки по синдрому
+def get_error_vector(syndrome):
+    error_vector = 0
+    all_errors = get_all_errors(1)
+    for vector in all_errors:
+        vector_num = arr_to_num(vector)
+        if (get_syndrome(vector_num) == syndrome):
+            error_vector = vector_num
+    return error_vector
+
+# Определяем исправлена и/или обнаружена ошибка
+def is_error_corrected(error_vector, all_errors):
+    encoded_info = coding()
+    error_info = encoded_info ^ error_vector
+    syndrome = get_syndrome(error_info)
+    supposed_error_vector = get_error_vector(syndrome)
+    corrected_info = error_info ^ supposed_error_vector
+    initial_info = corrected_info >> n - k
+    if (initial_info == information):
+        return 2
+    elif syndrome != 0:
+        return 1
+    else:
+        return 0
+
+# Вывод результатов вычисления корректирующей способности в виде таблицы
+def Ck_calc():
+    table = PrettyTable()
+    Nk_vector = [0] * 7
+    No_vector = [0] * 7
+    Co_vector = [0] * 7
+    Ck_vector = [0] * 7
+    i_vector = [0] * 7
+    Cn_vector = [0] * 7
+    for i in range(1, 8):
+        i_vector[i - 1] = i
+        Nk = 0
+        No = 0
+        all_errors = get_all_errors(i)
+        Cn_vector[i - 1] = len(all_errors)
+        for error_vector in all_errors:
+            flag = is_error_corrected(arr_to_num(error_vector), all_errors)
+            if flag == 2:
+                Nk += 1
+                No += 1
+            elif flag == 1:
+                No += 1
+            else:
+                print("error not found")
+        Nk_vector[i - 1] = Nk
+        No_vector[i - 1] = No
+        Ck_vector[i - 1] = Nk / Cn_vector[i - 1] * 100
+        Co_vector[i - 1] = No / Cn_vector[i - 1] * 100
+    table.add_column("i", i_vector)
+    table.add_column("Nk", Nk_vector)
+    table.add_column("No", No_vector)
+    table.add_column("Cni", Cn_vector)
+    table.add_column("Ck", Ck_vector)
+    table.add_column("Co", Co_vector)
+    return table
 
 
 def main():
-    """Основная функция"""
-
-    #один ко многим
-    one_to_many = [(b.title, b.length, s.name)
-                   for s in orchestras
-                   for b in compositions
-                   if b.orchestra_id == s.id]
-
-    #многие ко многим
-    many_to_many_temp = [(s.name, bs.orchestra_id, bs.composition_id)
-                         for s in orchestras
-                         for bs in orchestra_composition
-                         if s.id == bs.orchestra_id]
-
-    many_to_many = [(b.title, orchestra_name)
-                    for orchestra_name, orchestra_id, composition_id in many_to_many_temp
-                    for b in compositions if b.id == composition_id]
-
-    print('— Задание Г1'  + "\n" + tasks[0])
-    res_11 = list(filter(lambda x: x[2].startswith('А'), one_to_many))
-    for i in res_11:
-        print(i)
+    encoded_info = coding()
+    print("------------------------------TEST------------------------------")
+    print(f"encoded information: {bin(encoded_info)}")
+    e_test = 0b100
+    info_error = encoded_info ^ e_test
+    print(f"encoded information with test error vector (0100): {bin(info_error)}")
+    syndrome_test = get_syndrome(info_error)
+    print(f"syndrome: {bin(syndrome_test)}")
+    error_vector = get_error_vector(syndrome_test)
+    print(f"computed error vector: {bin(error_vector)}")
+    info_corrected = info_error ^ error_vector
+    print(f"corrected information: {bin(info_corrected)}")
+    print(f"initial information: {bin(info_corrected >> n - k)}")
+    print("------------------------------TEST------------------------------\n\n")
+    print("------------------------------TABLE---------------------------")
+    print(Ck_calc())
 
 
-    print('\n\n— Задание Г2' + "\n" + tasks[1])
-    res_12_unsorted = []
-    
-    for s in orchestras:
-        s_compositions = list(filter(lambda i: i[2] == s.name, one_to_many))
-        if len(s_compositions) > 0:
-            s_length = [length for _, length, _ in s_compositions]
-            s_length_max = max(s_length)
-            res_12_unsorted.append((s.name, s_length_max))
-    res_12 = sorted(res_12_unsorted, key=itemgetter(1), reverse=True)
-    print(res_12)
-
-    
-    print('\n\n— Задание Г3'  + "\n" + tasks[2])
-    res_13 = sorted(many_to_many, key=itemgetter(1))
-    print(res_13)
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
